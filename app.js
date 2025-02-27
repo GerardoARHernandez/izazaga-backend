@@ -131,6 +131,55 @@ app.post('/api/locatario', async (req, res) => {
   }
 });
 
+// Actualizar locatario
+app.post('/api/actualizar-locatario', async (req, res) => {
+  try {
+    console.log("Datos recibidos para actualizar:", req.body); // Depuración
+    const locatarioData = req.body; // Los datos del locatario vienen en el cuerpo de la solicitud
+
+    // Validar que el LocatarioId esté presente
+    if (!locatarioData.LocatarioId) {
+      return res.status(400).json({ message: 'El campo "LocatarioId" es requerido' });
+    }
+
+    // Enviar la solicitud al servidor backend para actualizar el locatario
+    const response = await axios.post(
+      `${APIDatos}/ActualizarLocatario`,
+      {
+        LocatarioId: locatarioData.LocatarioId,
+        LocatarioNombre: locatarioData.LocatarioNombre,
+        LocatarioDireccion: locatarioData.LocatarioDireccion,
+        LocatarioEmail: locatarioData.LocatarioEmail,
+        UsuId: locatarioData.UsuId,
+        LocatarioTelefono: locatarioData.LocatarioTelefono,
+        LocatarioTel2: locatarioData.LocatarioTel2 || '',
+        LocatarioRFC: locatarioData.LocatarioRFC,
+        LocatarioNomContacto: locatarioData.LocatarioNomContacto,
+        LocatarioTelContacto: locatarioData.LocatarioTelContacto,
+        LocatarioActivo: locatarioData.LocatarioActivo || 'S',
+        LocatarioObservacion: locatarioData.LocatarioObservacion || ''
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    // Enviar la respuesta del servidor backend al cliente
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error('Error en el servidor proxy:', error);
+    if (error.response) {
+      res.status(error.response.status).json({ message: error.response.data.message });
+    } else if (error.request) {
+      res.status(500).json({ message: 'No se recibió respuesta del servidor backend' });
+    } else {
+      res.status(500).json({ message: 'Error al configurar la solicitud' });
+    }
+  }
+});
+
 //Buscar todos los productos por locatario
 app.get("/productos", async (req, res) => {
   try {
