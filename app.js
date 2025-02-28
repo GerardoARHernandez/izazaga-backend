@@ -97,10 +97,10 @@ app.post('/api/locatario', async (req, res) => {
     const response = await axios.post(
       `${APIDatos}/CrearLocatario`,
       {
-        SDTLocatario: {
+        SDTCuentaLocatario: {
           LocatarioNombre: locatarioData.LocatarioNombre,
           LocatarioDireccion: locatarioData.LocatarioDireccion,
-          LocatarioEmail: locatarioData.LocatarioEmail,
+          LocatarioEmail: "",
           UsuId: "0",
           LocatarioTelefono: locatarioData.LocatarioTelefono,
           LocatarioTel2: locatarioData.LocatarioTel2,
@@ -108,7 +108,9 @@ app.post('/api/locatario', async (req, res) => {
           LocatarioNomContacto: locatarioData.LocatarioNomContacto,
           LocatarioTelContacto: locatarioData.LocatarioTelContacto,
           LocatarioActivo: "S",
-          LocatarioObservacion: locatarioData.LocatarioObservacion || ''
+          LocatarioObservacion: locatarioData.LocatarioObservacion || '',
+          UsuCuenta: locatarioData.UsuCuenta,
+          UsuPassword: locatarioData.UsuPassword
         }
       },
       {
