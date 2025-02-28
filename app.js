@@ -337,6 +337,44 @@ app.post('/api/actualizar-producto', async (req, res) => {
   }
 });
 
+// Buscar productos por LocatarioId y descripción
+app.get('/api/buscar-productos', async (req, res) => {
+  try {
+    const { Locatarioid, Prodsdescrip } = req.query; // Obtener los parámetros de la consulta
+
+    // Validar que los parámetros requeridos estén presentes
+    if (!Locatarioid || !Prodsdescrip) {
+      return res.status(400).json({ message: 'Los parámetros "Locatarioid" y "Prodsdescrip" son requeridos' });
+    }
+
+    // Hacer la solicitud a la API externa para buscar productos
+    const response = await axios.get(
+      `${APICatalogos}/BuscaProductos`, // Endpoint de la API externa
+      {
+        params: {
+          Locatarioid,
+          Prodsdescrip,
+        },
+      }
+    );
+
+    // Enviar la respuesta al frontend
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error('Error en el servidor proxy:', error);
+    if (error.response) {
+      // Si el servidor externo devuelve un error
+      res.status(error.response.status).json({ message: error.response.data.message });
+    } else if (error.request) {
+      // Si no se recibió respuesta del servidor externo
+      res.status(500).json({ message: 'No se recibió respuesta del servidor backend' });
+    } else {
+      // Si hubo un error al configurar la solicitud
+      res.status(500).json({ message: 'Error al configurar la solicitud' });
+    }
+  }
+});
+
 // Crear una parte de entrada
 app.post('/api/crear-part-entrada', async (req, res) => {
   try {
