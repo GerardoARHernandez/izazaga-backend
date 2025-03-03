@@ -570,6 +570,80 @@ app.get('/api/entradas-pendientes', async (req, res) => {
   }
 });
 
+// Crear una cita
+app.post('/api/crear-cita', async (req, res) => {
+  try {
+    const { SDTGeneraCita } = req.body;
+
+    // Validar que SDTGeneraCita no esté vacío
+    if (!SDTGeneraCita) {
+      return res.status(400).json({ message: "SDTGeneraCita es requerido" });
+    }
+
+    // Validar que los campos obligatorios estén presentes
+    if (!SDTGeneraCita.LocatarioId || !SDTGeneraCita.CitaFecha || !SDTGeneraCita.CitaHoraInicio || !SDTGeneraCita.CitaHoraFin) {
+      return res.status(400).json({ message: "Faltan campos obligatorios en SDTGeneraCita" });
+    }
+
+    // Llamar al endpoint CrearCita en el servidor externo
+    const response = await axios.post(
+      `${APIDatos}/CrearCita`,
+      {
+        SDTGeneraCita: {
+          ...SDTGeneraCita,
+        },
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    console.log("Respuesta del servidor externo:", response.data); // Verifica la respuesta del servidor externo
+
+    // Enviar la respuesta al frontend
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error('Error al crear cita:', error);
+    if (error.response) {
+      console.error("Error del servidor externo:", error.response.data);
+      res.status(error.response.status).json({ message: error.response.data.message });
+    } else if (error.request) {
+      console.error("No se recibió respuesta del servidor externo:", error.request);
+      res.status(500).json({ message: 'No se recibió respuesta del servidor externo' });
+    } else {
+      console.error("Error al configurar la solicitud:", error.message);
+      res.status(500).json({ message: 'Error al configurar la solicitud' });
+    }
+  }
+});
+
+// Obtener entradas confirmadas
+app.get('/api/entradas-confirmadas', async (req, res) => {
+  try {
+    // Hacer la solicitud a la API externa para obtener las entradas confirmadas
+    const response = await axios.get(
+      `${APIDatos}/EntradasConfirmadas`
+    );
+
+    // Enviar la respuesta al frontend
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error('Error en el servidor proxy:', error);
+    if (error.response) {
+      // Si el servidor externo devuelve un error
+      res.status(error.response.status).json({ message: error.response.data.message });
+    } else if (error.request) {
+      // Si no se recibió respuesta del servidor externo
+      res.status(500).json({ message: 'No se recibió respuesta del servidor backend' });
+    } else {
+      // Si hubo un error al configurar la solicitud
+      res.status(500).json({ message: 'Error al configurar la solicitud' });
+    }
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor Express corriendo en http://localhost:${PORT}`);
 });
