@@ -646,6 +646,84 @@ app.get('/api/entradas-confirmadas', async (req, res) => {
   }
 });
 
+// Actualizar el check de una partida
+app.post('/api/actualizar-check-partida', async (req, res) => {
+  try {
+    const { EntradaId, PartEntId, partEntCheck } = req.body;
+
+    // Validar que los campos requeridos estén presentes
+    if (!EntradaId || !PartEntId || partEntCheck === undefined) {
+      return res.status(400).json({ message: 'Los campos "EntradaId", "PartEntId" y "partEntCheck" son requeridos' });
+    }
+
+    // Enviar la solicitud al servidor backend
+    const response = await axios.post(
+      `${APIDatos}/ActualizaCheckPartE`,
+      {
+        EntradaId,
+        PartEntId,
+        partEntCheck,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    // Enviar la respuesta al frontend
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error('Error en el servidor proxy:', error);
+    if (error.response) {
+      res.status(error.response.status).json({ message: error.response.data.message });
+    } else if (error.request) {
+      res.status(500).json({ message: 'No se recibió respuesta del servidor backend' });
+    } else {
+      res.status(500).json({ message: 'Error al configurar la solicitud' });
+    }
+  }
+});
+
+// Actualizar las observaciones de una partida
+app.post('/api/actualizar-observaciones-partida', async (req, res) => {
+  try {
+    const { EntradaId, PartEntId, PartEntObserv } = req.body;
+
+    // Validar que los campos requeridos estén presentes
+    if (!EntradaId || !PartEntId || !PartEntObserv) {
+      return res.status(400).json({ message: 'Los campos "EntradaId", "PartEntId" y "PartEntObserv" son requeridos' });
+    }
+
+    // Enviar la solicitud al servidor backend
+    const response = await axios.post(
+      `${APIDatos}/ActualizaObservPartE`,
+      {
+        EntradaId,
+        PartEntId,
+        PartEntObserv,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    // Enviar la respuesta al frontend
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error('Error en el servidor proxy:', error);
+    if (error.response) {
+      res.status(error.response.status).json({ message: error.response.data.message });
+    } else if (error.request) {
+      res.status(500).json({ message: 'No se recibió respuesta del servidor backend' });
+    } else {
+      res.status(500).json({ message: 'Error al configurar la solicitud' });
+    }
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor Express corriendo en http://localhost:${PORT}`);
 });
