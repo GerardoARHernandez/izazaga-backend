@@ -185,9 +185,11 @@ app.post('/api/actualizar-locatario', async (req, res) => {
 //Buscar todos los productos por locatario
 app.get("/productos", async (req, res) => {
   try {
+    const { LocatarioId} = req.query;
+
     const response = await axios.get(
       `${APICatalogos}/Productos`,
-      { params: { LocatarioId: 0 } }
+      { params: { LocatarioId } }
     );
 
     res.json(response.data); // Enviar datos al cliente
