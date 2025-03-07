@@ -806,6 +806,39 @@ app.post('/api/asociar-imagen-producto', async (req, res) => {
   }
 });
 
+// Endpoint para obtener las imágenes de un producto
+app.get('/api/imagenes-producto/:prodId', async (req, res) => {
+  try {
+    const { prodId } = req.params; // Obtener el ID del producto desde los parámetros de la URL
+
+    // Validar que el ProdId esté presente
+    if (!prodId) {
+      return res.status(400).json({ message: 'El parámetro "prodId" es requerido' });
+    }
+
+    // Hacer la solicitud a la API externa
+    const response = await axios.get(
+      `http://systemweb.ddns.net/WebLocatario/APICatalogos/Imagenes/${prodId}`
+    );
+
+    // Verificar si la respuesta contiene datos válidos
+    if (response.data && response.data.SDTImagenProd) {
+      res.status(200).json(response.data.SDTImagenProd); // Devolver solo el array de imágenes
+    } else {
+      res.status(404).json({ message: 'No se encontraron imágenes para el producto especificado' });
+    }
+  } catch (error) {
+    console.error('Error en el servidor proxy:', error);
+    if (error.response) {
+      res.status(error.response.status).json({ message: error.response.data.message });
+    } else if (error.request) {
+      res.status(500).json({ message: 'No se recibió respuesta del servidor backend' });
+    } else {
+      res.status(500).json({ message: 'Error al configurar la solicitud' });
+    }
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Servidor Express corriendo en http://localhost:${PORT}`);
 });
