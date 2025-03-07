@@ -2,7 +2,10 @@ import express, { json } from 'express';
 import axios from 'axios';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import multer from 'multer';
 
+// Configuración de multer para manejar archivos binarios
+const upload = multer({ storage: multer.memoryStorage() }); // Almacena el archivo en memoria como un buffer
 dotenv.config();
 
 const app = express();
@@ -285,6 +288,7 @@ app.get('/api/eliminar-producto', async (req, res) => {
     );
 
     res.status(200).json(response.data);
+    console.log(response.data)
   } catch (error) {
     console.error('Error en el servidor proxy:', error);
     if (error.response) {
@@ -714,6 +718,84 @@ app.post('/api/actualizar-observaciones-partida', async (req, res) => {
     res.status(200).json(response.data);
   } catch (error) {
     console.error('Error en el servidor proxy:', error);
+    if (error.response) {
+      res.status(error.response.status).json({ message: error.response.data.message });
+    } else if (error.request) {
+      res.status(500).json({ message: 'No se recibió respuesta del servidor backend' });
+    } else {
+      res.status(500).json({ message: 'Error al configurar la solicitud' });
+    }
+  }
+});
+
+// Ruta para subir una imagen en base64
+app.post('/api/subir-imagen', upload.single('imagen'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No se ha proporcionado ninguna imagen' });
+    }
+
+    // Verificar el tipo de archivo
+    if (!req.file.mimetype.startsWith('image/')) {
+      return res.status(400).json({ message: 'Tipo de archivo no válido. Solo se permiten imágenes.' });
+    }
+
+    const imageBuffer = req.file.buffer;
+    const fileExtension = req.file.mimetype.split('/')[1]; // Obtener la extensión del archivo (ej: 'jpeg', 'png')
+
+    // Enviar la imagen al servidor externo con la extensión correcta
+    const response = await axios.post(
+      `${APICatalogos}/gxobject`,
+      imageBuffer,
+      {
+        headers: {
+          'Content-Type': req.file.mimetype,
+          'File-Extension': fileExtension, // Enviar la extensión del archivo
+        },
+      }
+    );
+
+    res.status(200).json(response.data);
+    console.log("img",response.data)
+  } catch (error) {
+    console.error('Error al subir la imagen:', error);
+    if (error.response) {
+      res.status(error.response.status).json({ message: error.response.data.message });
+    } else if (error.request) {
+      res.status(500).json({ message: 'No se recibió respuesta del servidor backend' });
+    } else {
+      res.status(500).json({ message: 'Error al configurar la solicitud' });
+    }
+  }
+});
+
+// Ruta para asociar una imagen a un producto
+app.post('/api/asociar-imagen-producto', async (req, res) => {
+  try {
+    const { ProdId, FileImage } = req.body;
+
+    if (!ProdId || !FileImage) {
+      return res.status(400).json({ message: 'Los campos "ProdId" y "FileImage" son requeridos' });
+    }
+
+    // Enviar la solicitud al servidor externo para asociar la imagen al producto
+    const response = await axios.post(
+      `${APICatalogos}/EnlazaImagenProd`,
+      {
+        ProdId,
+        FileImage,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    // Devolver la respuesta del servidor externo
+    res.status(200).json(response.data);
+  } catch (error) {
+    console.error('Error al asociar la imagen al producto:', error);
     if (error.response) {
       res.status(error.response.status).json({ message: error.response.data.message });
     } else if (error.request) {
